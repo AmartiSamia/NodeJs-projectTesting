@@ -186,12 +186,8 @@ CMD ["nginx", "-g", "daemon off;"]
               break
               
             case 'nodejs':
-              echo "Installing dependencies and building Node.js project"
-              sh '''
-                npm ci
-                npm run build || echo "No build script found, proceeding with source files"
-              '''
-              break
+          echo "Skipping Node.js prebuild; handled inside Docker image"
+          break
               
             default:
               echo "No build step required for ${env.PROJECT_TYPE} project"
