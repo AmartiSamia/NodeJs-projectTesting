@@ -186,8 +186,10 @@ CMD ["nginx", "-g", "daemon off;"]
               break
               
             case 'nodejs':
-          echo "Skipping Node.js prebuild; handled inside Docker image"
-          break
+              // ✅ IMPORTANT: Do not require Node/npm on the Jenkins agent.
+              // The Node.js dependencies will be installed INSIDE the Docker image during the build.
+              echo "Skipping Node.js prebuild; handled inside Docker image"
+              break
               
             default:
               echo "No build step required for ${env.PROJECT_TYPE} project"
