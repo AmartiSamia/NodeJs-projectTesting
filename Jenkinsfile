@@ -124,12 +124,25 @@ pipeline {
             
             switch(env.PROJECT_TYPE) {
               case 'nodejs':
+                // NOTE: Use npm ci if package-lock.json exists; otherwise fallback to npm install
                 dockerfileContent = '''
 FROM node:18-alpine
 WORKDIR /app
+
+# Copy package manifests first for better layer caching
 COPY package*.json ./
-RUN npm ci --only=production
+
+# If a lockfile exists, prefer a clean, reproducible install.
+# Otherwise, do a regular install (use --omit=dev to mirror previous --only=production).
+RUN if [ -f package-lock.json ]; then \
+      npm ci --omit=dev; \
+    else \
+      npm install --omit=dev; \
+    fi
+
+# Copy the rest of the source
 COPY . .
+
 EXPOSE 3000
 CMD ["npm", "start"]
 '''
@@ -186,8 +199,7 @@ CMD ["nginx", "-g", "daemon off;"]
               break
               
             case 'nodejs':
-              // ✅ IMPORTANT: Do not require Node/npm on the Jenkins agent.
-              // The Node.js dependencies will be installed INSIDE the Docker image during the build.
+              // No npm on agent; installs happen in Dockerfile
               echo "Skipping Node.js prebuild; handled inside Docker image"
               break
               
